@@ -5,6 +5,8 @@ import cors from "cors";
 import session from "express-session";
 import MongoStore from "connect-mongo";
 import fetch from "node-fetch";
+import { stringify as csvStringify } from "csv-stringify/sync";
+import { BSON } from "bson";
 
 dotenv.config();
 
@@ -181,6 +183,60 @@ function requireAuth(req, res, next) {
   if (req.session?.auth?.allowed) return next();
   return res.status(401).json({ error: "unauthorized" });
 }
+
+app.get("/export", requireAuth, async (req, res) => {
+  try {
+    const { type = "json", scope = "full", collection, query } = req.query;
+
+    let data;
+
+    if (scope === "collection" && collection) {
+      data = await db.collection(collection).find({}).toArray();
+    } else if (scope === "search" && collection && query) {
+      let q;
+      try {
+        q = JSON.parse(query);
+      } catch {
+        return res.status(400).json({ error: "Invalid search query JSON" });
+      }
+      data = await db.collection(collection).find(q).toArray();
+    } else {
+      // full DB
+      const collections = await db.listCollections().toArray();
+      data = {};
+      for (const col of collections) {
+        data[col.name] = await db.collection(col.name).find({}).toArray();
+      }
+    }
+
+    if (type === "json") {
+      res.setHeader("Content-Disposition", `attachment; filename="export.json"`);
+      return res.json(data);
+    }
+
+    if (type === "bson") {
+      const bsonData = BSON.serialize(data);
+      res.setHeader("Content-Disposition", `attachment; filename="export.bson"`);
+      res.setHeader("Content-Type", "application/octet-stream");
+      return res.send(bsonData);
+    }
+
+    if (type === "csv") {
+      if (!Array.isArray(data)) {
+        return res.status(400).json({ error: "CSV export only works on a single collection array" });
+      }
+      const csv = csvStringify(data, { header: true });
+      res.setHeader("Content-Disposition", `attachment; filename="export.csv"`);
+      res.setHeader("Content-Type", "text/csv");
+      return res.send(csv);
+    }
+
+    return res.status(400).json({ error: "Invalid export type" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Export failed" });
+  }
+});
 
 app.get("/data", requireAuth, async (_req, res) => {
   try {
