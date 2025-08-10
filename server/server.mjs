@@ -11,14 +11,24 @@ app.use(cors());
 const uri = `mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_CLUSTER}/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority`;
 const client = new MongoClient(uri);
 
-app.get("/data", async (_req, res) => {
+let db;
+
+async function initMongo() {
   try {
     await client.connect();
-    const db = client.db(process.env.MONGO_DATABASE);
+    db = client.db(process.env.MONGO_DATABASE);
+    console.log("MongoDB connected");
+  } catch (err) {
+    console.error("MongoDB connection error:", err);
+    process.exit(1);
+  }
+}
 
+app.get("/data", async (_req, res) => {
+  try {
     const collections = await db.listCollections().toArray();
-
     const result = {};
+
     for (const col of collections) {
       const documents = await db.collection(col.name).find({}).toArray();
       result[col.name] = documents;
@@ -28,9 +38,10 @@ app.get("/data", async (_req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch data" });
-  } finally {
-    await client.close();
   }
 });
 
-app.listen(3000, () => console.log("Server running on http://localhost:3000"));
+app.listen(3000, async () => {
+  await initMongo();
+  console.log("Server running on http://localhost:3000");
+});
