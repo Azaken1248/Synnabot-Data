@@ -8,6 +8,7 @@ import {
   faChevronRight,
   faCopy,
   faSignOutAlt,
+  faDownload,
 } from "@fortawesome/free-solid-svg-icons";
 import Loader from "./Loader";
 
@@ -23,8 +24,10 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [highlightedDoc, setHighlightedDoc] = useState<string | null>(null);
   const [showLogout, setShowLogout] = useState(false);
+  const [showExport, setShowExport] = useState(false);
   const docRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const exportRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     fetch("http://localhost:3000/data", { credentials: "include" })
@@ -45,6 +48,9 @@ export default function Home() {
       ) {
         setShowLogout(false);
       }
+      if (exportRef.current && !exportRef.current.contains(e.target as Node)) {
+        setShowExport(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -57,6 +63,33 @@ export default function Home() {
     })
       .then(() => setUser(null))
       .catch(console.error);
+  };
+
+  const exportData = async (
+    scope: "full" | "collection" | "search",
+    format: string
+  ) => {
+    const params = new URLSearchParams({
+      scope,
+      format,
+      ...(scope === "collection" && activeCollection
+        ? { collection: activeCollection }
+        : {}),
+      ...(scope === "search" ? { search } : {}),
+    });
+
+    const res = await fetch(`http://localhost:3000/export?${params}`, {
+      credentials: "include",
+    });
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `export-${scope}.${format}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   };
 
   const toggleExpand = (path: string) => {
@@ -191,9 +224,22 @@ export default function Home() {
         )
       : [];
 
+  const getIconForFormat = (format: string) => {
+    switch (format) {
+      case "json":
+        return faFileAlt;
+      case "bson":
+        return faDatabase;
+      case "csv":
+        return faFileAlt;
+      default:
+        return faFileAlt;
+    }
+  };
+
   return (
     <div className="bg-gray-900 text-white min-h-screen font-mono flex flex-col">
-      <div className="bg-gray-800 border-b border-gray-700 flex flex-col sm:flex-row sm:items-center p-2 gap-2">
+      <div className="bg-gray-800 border-b border-gray-700 flex flex-wrap items-center p-2 gap-2">
         <div className="flex overflow-x-auto space-x-2 pb-1 scrollbar-thin scrollbar-thumb-gray-600">
           {data &&
             Object.keys(data).map((collection) => (
@@ -212,13 +258,99 @@ export default function Home() {
             ))}
         </div>
 
-        <div className="flex-shrink-0 w-full sm:w-auto sm:ml-auto flex items-center gap-2 relative">
+        <div className="block sm:hidden w-full" ref={exportRef}>
+          <button
+            onClick={() => setShowExport((prev) => !prev)}
+            className="w-full px-3 py-2 bg-gray-700 rounded hover:bg-gray-600 flex items-center justify-center gap-2"
+          >
+            <FontAwesomeIcon icon={faDownload} /> Export
+          </button>
+          {showExport && (
+            <div className="mt-2 w-full bg-gray-800 border border-gray-700 rounded shadow-lg z-50 max-h-[80vh] overflow-auto">
+              {["json", "bson", "csv"].map((fmt) => (
+                <div
+                  key={fmt}
+                  className="border-b border-gray-700 last:border-0"
+                >
+                  <button
+                    onClick={() => exportData("full", fmt)}
+                    className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center gap-2"
+                  >
+                    <FontAwesomeIcon icon={getIconForFormat(fmt)} />
+                    Full DB → {fmt.toUpperCase()}
+                  </button>
+                  <button
+                    onClick={() => exportData("collection", fmt)}
+                    className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center gap-2"
+                  >
+                    <FontAwesomeIcon icon={getIconForFormat(fmt)} />
+                    Current Collection → {fmt.toUpperCase()}
+                  </button>
+                  {search && (
+                    <button
+                      onClick={() => exportData("search", fmt)}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center gap-2"
+                    >
+                      <FontAwesomeIcon icon={getIconForFormat(fmt)} />
+                      Search Results → {fmt.toUpperCase()}
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="flex-shrink-0 w-full sm:w-auto sm:ml-auto flex items-center gap-2 relative flex-wrap justify-end">
+          <div className="hidden sm:block relative" ref={exportRef}>
+            <button
+              onClick={() => setShowExport((prev) => !prev)}
+              className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600 flex items-center gap-2"
+            >
+              <FontAwesomeIcon icon={faDownload} /> Export
+            </button>
+            {showExport && (
+              <div className="absolute right-0 mt-2 w-56 bg-gray-800 border border-gray-700 rounded shadow-lg z-50 max-h-[80vh] overflow-auto">
+                {["json", "bson", "csv"].map((fmt) => (
+                  <div
+                    key={fmt}
+                    className="border-b border-gray-700 last:border-0"
+                  >
+                    <button
+                      onClick={() => exportData("full", fmt)}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center gap-2"
+                    >
+                      <FontAwesomeIcon icon={getIconForFormat(fmt)} />
+                      Full DB → {fmt.toUpperCase()}
+                    </button>
+                    <button
+                      onClick={() => exportData("collection", fmt)}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center gap-2"
+                    >
+                      <FontAwesomeIcon icon={getIconForFormat(fmt)} />
+                      Current Collection → {fmt.toUpperCase()}
+                    </button>
+                    {search && (
+                      <button
+                        onClick={() => exportData("search", fmt)}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center gap-2"
+                      >
+                        <FontAwesomeIcon icon={getIconForFormat(fmt)} />
+                        Search Results → {fmt.toUpperCase()}
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <input
             type="text"
             placeholder="Search..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full sm:w-48 px-2 py-1 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none"
+            className="flex-1 sm:flex-none sm:w-48 px-2 py-1 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none"
           />
 
           {user && (
@@ -229,10 +361,9 @@ export default function Home() {
                   `https://cdn.discordapp.com/embed/avatars/0.png`
                 }
                 alt="User avatar"
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-gray-700 cursor-pointer hover:opacity-80 transition"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-gray-700 cursor-pointer hover:opacity-80 transition"
                 onClick={() => setShowLogout((prev) => !prev)}
               />
-
               {showLogout && (
                 <div className="absolute right-0 mt-2 w-36 bg-gray-800 border border-gray-700 rounded shadow-lg z-50">
                   <button
