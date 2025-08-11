@@ -238,6 +238,52 @@ app.get("/export", requireAuth, async (req, res) => {
   }
 });
 
+app.get("/resolve/:type/:id", requireAuth, async (req, res) => {
+  const { type, id } = req.params;
+
+  try {
+    if (type === "discord-user") {
+      const userResp = await discordApi(`/users/${id}`);
+      if (!userResp.ok) {
+        return res.status(404).json({ error: "Discord user not found" });
+      }
+      const user = await userResp.json();
+      const name = `${user.username}#${user.discriminator}`;
+      return res.json({ id, name });
+    }
+
+    if (type === "discord-server") {
+      const guildResp = await discordApi(`/guilds/${id}`);
+      if (!guildResp.ok) {
+        return res.status(404).json({ error: "Discord server not found" });
+      }
+      const guild = await guildResp.json();
+      return res.json({ id, name: guild.name });
+    }
+
+    if (type === "client") {
+      const clientDoc = await db.collection("clients").findOne({ _id: id });
+      if (!clientDoc) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+      return res.json({ id, name: clientDoc.name || "Unnamed Client" });
+    }
+
+    if (type === "server") {
+      const serverDoc = await db.collection("servers").findOne({ _id: id });
+      if (!serverDoc) {
+        return res.status(404).json({ error: "Server not found" });
+      }
+      return res.json({ id, name: serverDoc.name || "Unnamed Server" });
+    }
+
+    return res.status(400).json({ error: "Invalid type parameter" });
+  } catch (err) {
+    console.error("Resolve error:", err);
+    return res.status(500).json({ error: "Failed to resolve name" });
+  }
+});
+
 app.get("/data", requireAuth, async (_req, res) => {
   try {
     const collections = await db.listCollections().toArray();
