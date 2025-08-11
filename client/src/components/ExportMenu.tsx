@@ -43,7 +43,7 @@ export default function ExportMenu({
       ...(scope === "search" ? { search } : {}),
     });
 
-    const res = await fetch(`http://localhost:3000/export?${params}`, {
+    const res = await fetch(`http://localhost:8000/export?${params}`, {
       credentials: "include",
     });
     const blob = await res.blob();

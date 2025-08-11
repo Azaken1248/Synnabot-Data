@@ -12,7 +12,7 @@ export default function ResolveDiscordNameButton({ id }: { id: string }) {
     setError(null);
     try {
       const res = await fetch(
-        `http://localhost:3000/resolve/discord-user/${id}`,
+        `http://localhost:8000/resolve/discord-user/${id}`,
         {
           credentials: "include",
         }

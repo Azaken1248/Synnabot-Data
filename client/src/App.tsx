@@ -39,7 +39,7 @@ export function useAuth() {
 function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserType>(null);
   const [loading, setLoading] = useState(true);
-  const apiBase = import.meta.env.VITE_API_URL || "http://localhost:3000";
+  const apiBase = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
   useEffect(() => {
     fetch(`${apiBase}/auth/me`, { credentials: "include" })
