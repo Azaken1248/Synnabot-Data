@@ -40,7 +40,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserType>(null);
   const [loading, setLoading] = useState(true);
   const apiBase =
-    import.meta.env.VITE_API_URL || "https://api.data.synnabot.azaken.com/";
+    import.meta.env.VITE_API_URL || "https://api.data.synnabot.azaken.com";
 
   useEffect(() => {
     fetch(`${apiBase}/auth/me`, { credentials: "include" })
