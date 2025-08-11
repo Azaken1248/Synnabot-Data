@@ -12,7 +12,7 @@ import logo from "../assets/icon.png";
 export default function LoginPage() {
   const { user, loading, setUser } = useAuth();
   const apiBase =
-    import.meta.env.VITE_API_URL || "https://api.data.synnabot.azaken.com/";
+    import.meta.env.VITE_API_URL || "https://api.data.synnabot.azaken.com";
   const [params] = useSearchParams();
   const error = params.get("error");
   const authDenied = params.get("auth") === "denied";
