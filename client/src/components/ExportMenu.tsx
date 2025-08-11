@@ -43,9 +43,12 @@ export default function ExportMenu({
       ...(scope === "search" ? { search } : {}),
     });
 
-    const res = await fetch(`http://localhost:8000/export?${params}`, {
-      credentials: "include",
-    });
+    const res = await fetch(
+      `https://api.data.synnabot.azaken.com/export?${params}`,
+      {
+        credentials: "include",
+      }
+    );
     const blob = await res.blob();
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");

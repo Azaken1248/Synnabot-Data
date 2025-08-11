@@ -18,7 +18,9 @@ export default function Home() {
   const docRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
-    fetch("http://localhost:8000/data", { credentials: "include" })
+    fetch("https://api.data.synnabot.azaken.com/data", {
+      credentials: "include",
+    })
       .then((res) => res.json())
       .then((json: MongoData) => {
         setData(json);
@@ -29,7 +31,7 @@ export default function Home() {
   }, []);
 
   const logout = () => {
-    fetch("http://localhost:8000/auth/logout", {
+    fetch("https://api.data.synnabot.azaken.com/auth/logout", {
       method: "POST",
       credentials: "include",
     })
