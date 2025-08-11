@@ -11,6 +11,7 @@ import {
   faDownload,
 } from "@fortawesome/free-solid-svg-icons";
 import Loader from "./Loader";
+import ResolveDiscordNameButton from "./ResolveDiscordName";
 
 type MongoDocument = { [key: string]: any };
 type MongoData = { [collectionName: string]: MongoDocument[] };
@@ -180,6 +181,7 @@ export default function Home() {
     return (
       <span className={getValueClass(value)}>
         {highlightMatch(String(value))}
+
         <button
           onClick={() => copyToClipboard(String(value))}
           className="ml-2 text-xs text-gray-500 hover:text-gray-300"
@@ -439,10 +441,23 @@ export default function Home() {
                         <span className="text-gray-300">
                           {highlightMatch(key)}:
                         </span>
-                        {renderValue(
-                          value,
-                          `${activeCollection}-${idx}-${key}`,
-                          1
+                        {key === "discordId" ? (
+                          <div className="flex items-center gap-3">
+                            <span>
+                              {renderValue(
+                                value,
+                                `${activeCollection}-${idx}-${key}`,
+                                1
+                              )}
+                            </span>
+                            <ResolveDiscordNameButton id={String(value)} />
+                          </div>
+                        ) : (
+                          renderValue(
+                            value,
+                            `${activeCollection}-${idx}-${key}`,
+                            1
+                          )
                         )}
                       </div>
                     ))}
