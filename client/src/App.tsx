@@ -11,8 +11,8 @@ import {
   useContext,
   type JSX,
 } from "react";
-import LoginPage from "./components/Login";
-import Home from "./components/Home";
+import LoginPage from "./pages/Login";
+import Home from "./pages/Home";
 import Loader from "./components/Loader";
 
 type UserType = {
