@@ -13,6 +13,9 @@ import { getClient, healthCheck } from "./database/index.mjs";
 export default function createApp() {
   const app = express();
 
+  // Trust the first proxy (required for secure cookies when behind a reverse proxy/load balancer)
+  app.set("trust proxy", 1);
+
   app.use(helmetMiddleware);
   app.use(requestLogger);
   app.use(corsMiddleware);
