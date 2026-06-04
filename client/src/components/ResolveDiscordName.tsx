@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { API_BASE } from "../config/api";
 
 export default function ResolveDiscordNameButton({ id }: { id: string }) {
   const [name, setName] = useState<string | null>(null);
@@ -12,7 +13,7 @@ export default function ResolveDiscordNameButton({ id }: { id: string }) {
     setError(null);
     try {
       const res = await fetch(
-        `https://api.data.synnabot.azaken.com/resolve/discord-user/${id}`,
+        `${API_BASE}/resolve/discord-user/${id}`,
         {
           credentials: "include",
         }

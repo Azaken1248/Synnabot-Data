@@ -8,22 +8,22 @@ import {
   faArrowRight,
 } from "@fortawesome/free-solid-svg-icons";
 import logo from "../assets/icon.png";
+import { API_BASE } from "../config/api";
 
 export default function LoginPage() {
   const { user, loading, setUser } = useAuth();
-  const apiBase =
-    import.meta.env.VITE_API_URL || "https://api.data.synnabot.azaken.com";
+
   const [params] = useSearchParams();
   const error = params.get("error");
   const authDenied = params.get("auth") === "denied";
   const navigate = useNavigate();
 
   const login = () => {
-    window.location.href = `${apiBase}/auth/discord`;
+    window.location.href = `${API_BASE}/auth/discord`;
   };
 
   const logout = () => {
-    fetch(`${apiBase}/auth/logout`, {
+    fetch(`${API_BASE}/auth/logout`, {
       method: "POST",
       credentials: "include",
     })

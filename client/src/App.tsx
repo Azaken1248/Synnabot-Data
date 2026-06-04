@@ -14,6 +14,7 @@ import {
 import LoginPage from "./pages/Login";
 import Home from "./pages/Home";
 import Loader from "./components/Loader";
+import { API_BASE } from "./config/api";
 
 type UserType = {
   id: string;
@@ -39,11 +40,8 @@ export function useAuth() {
 function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserType>(null);
   const [loading, setLoading] = useState(true);
-  const apiBase =
-    import.meta.env.VITE_API_URL || "https://api.data.synnabot.azaken.com";
-
   useEffect(() => {
-    fetch(`${apiBase}/auth/me`, { credentials: "include" })
+    fetch(`${API_BASE}/auth/me`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
         if (data.ok) setUser(data.user);

@@ -5,6 +5,7 @@ import {
   faFileAlt,
   faDatabase,
 } from "@fortawesome/free-solid-svg-icons";
+import { API_BASE } from "../config/api";
 
 type ExportMenuProps = {
   activeCollection: string | null;
@@ -44,7 +45,7 @@ export default function ExportMenu({
     });
 
     const res = await fetch(
-      `https://api.data.synnabot.azaken.com/export?${params}`,
+      `${API_BASE}/export?${params}`,
       {
         credentials: "include",
       }

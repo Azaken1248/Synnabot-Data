@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import SearchResults from "../components/SearchResults";
 import DocumentViewer from "../components/DocumentViewer";
 import Loader from "../components/Loader";
+import { API_BASE } from "../config/api";
 
 type MongoDocument = { [key: string]: any };
 type MongoData = { [collectionName: string]: MongoDocument[] };
@@ -18,7 +19,7 @@ export default function Home() {
   const docRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
-    fetch("https://api.data.synnabot.azaken.com/data", {
+    fetch(`${API_BASE}/data`, {
       credentials: "include",
     })
       .then((res) => res.json())
@@ -31,7 +32,7 @@ export default function Home() {
   }, []);
 
   const logout = () => {
-    fetch("https://api.data.synnabot.azaken.com/auth/logout", {
+    fetch(`${API_BASE}/auth/logout`, {
       method: "POST",
       credentials: "include",
     })
