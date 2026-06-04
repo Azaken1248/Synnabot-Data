@@ -3,13 +3,6 @@ import logger from "./utils/logger.mjs";
 import { connect, disconnect } from "./database/index.mjs";
 import createApp from "./app.mjs";
 
-/**
- * Bootstrap the server:
- * 1. Connect to MongoDB (with retry)
- * 2. Create the Express app
- * 3. Start listening
- * 4. Register graceful-shutdown handlers
- */
 async function bootstrap() {
   await connect();
 
@@ -22,17 +15,14 @@ async function bootstrap() {
     );
   });
 
-  // ── Graceful shutdown ──────────────────────────────────────────────
-
   let shuttingDown = false;
 
   const shutdown = async (signal) => {
-    if (shuttingDown) return; // prevent double-shutdown
+    if (shuttingDown) return;
     shuttingDown = true;
 
     logger.info({ signal }, "Shutdown signal received — draining…");
 
-    // Stop accepting new connections and wait for in-flight requests
     server.close(async () => {
       logger.info("HTTP server closed");
 
@@ -46,7 +36,6 @@ async function bootstrap() {
       }
     });
 
-    // Force-kill if draining takes too long
     setTimeout(() => {
       logger.error("Forced shutdown after 10 s timeout");
       process.exit(1);
@@ -67,9 +56,7 @@ async function bootstrap() {
   });
 }
 
-// ── Start ────────────────────────────────────────────────────────────
 bootstrap().catch((err) => {
-  // If we can't even start, make sure we log and exit non-zero
   console.error("Fatal: failed to start server", err);
   process.exit(1);
 });
